@@ -1,25 +1,21 @@
 let res
 
-// 获取当前页面的路径作为 API 服务器地址
 let apiSrv = window.location.pathname
-// 获取密码输入框的值
 let password_value = document.querySelector("#passwordText").value
+// let apiSrv = "https://journal.crazypeace.workers.dev"
+// let password_value = "journaljournal"
 
-// 默认的构建值项目函数，在不同的 index.html 中可以设置为不同的函数
+// 这是默认行为, 在不同的index.html中可以设置为不同的行为
 let buildValueItemFunc = buildValueTxt
 
 function shorturl() {
-  // 如果长链接输入框为空，弹出警告并返回
   if (document.querySelector("#longURL").value == "") {
-    alert("URL 不能为空！")
+    alert("Url cannot be empty!")
     return
   }
 
-  // 禁用“缩短链接”按钮，并将按钮文本改为“请等待...”
   document.getElementById("addBtn").disabled = true;
-  document.getElementById("addBtn").innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>请稍候...';
-
-  // 发起 POST 请求
+  document.getElementById("addBtn").innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Please wait...';
   fetch(apiSrv, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -28,35 +24,32 @@ function shorturl() {
     return response.json();
   }).then(function (myJson) {
     res = myJson;
-    // 启用“缩短链接”按钮，并将按钮文本改回“缩短链接”
     document.getElementById("addBtn").disabled = false;
-    document.getElementById("addBtn").innerHTML = '缩短链接';
+    document.getElementById("addBtn").innerHTML = 'Shorten it';
 
-    // 如果生成短链接成功
+    // 成功生成短链 Succeed
     if (res.status == "200") {
       let keyPhrase = res.key;
       let valueLongURL = document.querySelector("#longURL").value;
-      // 保存到本地存储
+      // save to localStorage
       localStorage.setItem(keyPhrase, valueLongURL);
-      // 将生成的链接添加到页面上的链接列表中
+      // add to urlList on the page
       addUrlToList(keyPhrase, valueLongURL)
 
       document.getElementById("result").innerHTML = window.location.protocol + "//" + window.location.host + "/" + res.key;
     } else {
-      // 否则在结果区域显示错误信息
       document.getElementById("result").innerHTML = res.error;
     }
 
-    // 弹出结果提示框
+    // 弹出消息窗口 Popup the result
     var modal = new bootstrap.Modal(document.getElementById('resultModal'));
     modal.show();
 
   }).catch(function (err) {
-    // 捕获并处理异常
-    alert("未知错误，请重试！");
+    alert("Unknow error. Please retry!");
     console.log(err);
     document.getElementById("addBtn").disabled = false;
-    document.getElementById("addBtn").innerHTML = '缩短链接';
+    document.getElementById("addBtn").innerHTML = 'Shorten it';
   })
 }
 
@@ -85,13 +78,13 @@ function copyurl(id, attr) {
     window.getSelection().addRange(range);
     document.execCommand('copy');
     window.getSelection().removeAllRanges();
-    console.log('复制成功')
+    console.log('Copy success')
   } catch (e) {
-    console.log('复制失败')
+    console.log('Copy error')
   }
 
   if (attr) {
-    // 移除临时目标
+    // remove temp target
     target.parentElement.removeChild(target);
   }
 }
@@ -103,18 +96,21 @@ function loadUrlList() {
     urlList.removeChild(urlList.firstChild)
   }
 
-  // 获取长链接输入框中的值
+  // 文本框中的长链接
   let longUrl = document.querySelector("#longURL").value
   console.log(longUrl)
 
-  // 遍历本地存储
+  // 遍历localStorage
   let len = localStorage.length
   console.log(+len)
   for (; len > 0; len--) {
     let keyShortURL = localStorage.key(len - 1)
     let valueLongURL = localStorage.getItem(keyShortURL)
 
-    // 如果长链接为空，则加载所有本地存储中的项目；否则只加载匹配的项目
+    // 如果长链接为空，加载所有的localStorage
+    // If the long url textbox is empty, load all in localStorage
+    // 如果长链接不为空，加载匹配的localStorage
+    // If the long url textbox is not empty, only load matched item in localStorage
     if (longUrl == "" || (longUrl == valueLongURL)) {
       addUrlToList(keyShortURL, valueLongURL)
     }
@@ -131,7 +127,7 @@ function addUrlToList(shortUrl, longUrl) {
   let keyItem = document.createElement('div')
   keyItem.classList.add("input-group")
 
-  // 删除按钮
+  // 删除按钮 Remove item button
   let delBtn = document.createElement('button')
   delBtn.setAttribute('type', 'button')
   delBtn.classList.add("btn", "btn-danger")
@@ -140,7 +136,7 @@ function addUrlToList(shortUrl, longUrl) {
   delBtn.innerText = "X"
   keyItem.appendChild(delBtn)
 
-  // 查询访问次数按钮
+  // 查询访问次数按钮 Query visit times button
   let qryCntBtn = document.createElement('button')
   qryCntBtn.setAttribute('type', 'button')
   qryCntBtn.classList.add("btn", "btn-info")
@@ -149,7 +145,7 @@ function addUrlToList(shortUrl, longUrl) {
   qryCntBtn.innerText = "?"
   keyItem.appendChild(qryCntBtn)
 
-  // 短链接信息
+  // 短链接信息 Short url
   let keyTxt = document.createElement('span')
   keyTxt.classList.add("form-control")
   keyTxt.innerText = window.location.protocol + "//" + window.location.host + "/" + shortUrl
@@ -157,7 +153,7 @@ function addUrlToList(shortUrl, longUrl) {
   
   child.appendChild(keyItem)
 
-  // 长链接信息
+  // 长链接信息 Long url
   child.appendChild(buildValueItemFunc(longUrl))
 
   urlList.append(child)
@@ -168,11 +164,11 @@ function clearLocalStorage() {
 }
 
 function deleteShortUrl(delKeyPhrase) {
-  // 按钮状态
+  // 按钮状态 Button Status
   document.getElementById("delBtn-" + delKeyPhrase).disabled = true;
   document.getElementById("delBtn-" + delKeyPhrase).innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
 
-  // 从 KV 中删除
+  // 从KV中删除 Remove item from KV
   fetch(apiSrv, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -182,35 +178,35 @@ function deleteShortUrl(delKeyPhrase) {
   }).then(function (myJson) {
     res = myJson;
 
-    // 删除成功
+    // 成功删除 Succeed
     if (res.status == "200") {
-      // 从本地存储中删除
+      // 从localStorage中删除
       localStorage.removeItem(delKeyPhrase)
 
-      // 加载本地存储
+      // 加载localStorage
       loadUrlList()
 
-      document.getElementById("result").innerHTML = "删除成功"
+      document.getElementById("result").innerHTML = "Delete Successful"
     } else {
       document.getElementById("result").innerHTML = res.error;
     }
 
-    // 弹出结果提示框
+    // 弹出消息窗口 Popup the result
     var modal = new bootstrap.Modal(document.getElementById('resultModal'));
     modal.show();
 
   }).catch(function (err) {
-    alert("未知错误，请重试！");
+    alert("Unknow error. Please retry!");
     console.log(err);
   })
 }
 
 function queryVisitCount(qryKeyPhrase) {
-  // 按钮状态
+  // 按钮状态 Button Status
   document.getElementById("qryCntBtn-" + qryKeyPhrase).disabled = true;
   document.getElementById("qryCntBtn-" + qryKeyPhrase).innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
 
-  // 从 KV 中查询
+  // 从KV中查询 Query from KV
   fetch(apiSrv, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -220,18 +216,18 @@ function queryVisitCount(qryKeyPhrase) {
   }).then(function (myJson) {
     res = myJson;
 
-    // 查询成功
+    // 成功查询 Succeed
     if (res.status == "200") {
       document.getElementById("qryCntBtn-" + qryKeyPhrase).innerHTML = res.url;
     } else {
       document.getElementById("result").innerHTML = res.error;
-      // 弹出结果提示框
+      // 弹出消息窗口 Popup the result
       var modal = new bootstrap.Modal(document.getElementById('resultModal'));
       modal.show();
     }
 
   }).catch(function (err) {
-    alert("未知错误，请重试！");
+    alert("Unknow error. Please retry!");
     console.log(err);
   })
 }
@@ -242,7 +238,7 @@ function query1KV() {
     return
   }
 
-  // 从 KV 中查询
+  // 从KV中查询 Query from KV
   fetch(apiSrv, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -252,33 +248,33 @@ function query1KV() {
   }).then(function (myJson) {
     res = myJson;
 
-    // 查询成功
+    // 成功查询 Succeed
     if (res.status == "200") {
       document.getElementById("longURL").value = res.url;
       document.getElementById("keyPhrase").value = qryKeyPhrase;
-      // 触发 input 事件
+      // 触发input事件
       document.getElementById("longURL").dispatchEvent(new Event('input', {
         bubbles: true,
         cancelable: true,
       }))
     } else {
       document.getElementById("result").innerHTML = res.error;
-      // 弹出结果提示框
+      // 弹出消息窗口 Popup the result
       var modal = new bootstrap.Modal(document.getElementById('resultModal'));
       modal.show();
     }
 
   }).catch(function (err) {
-    alert("未知错误，请重试！");
+    alert("Unknow error. Please retry!");
     console.log(err);
   })
 }
 
 function loadKV() {
-  // 清空本地存储
+  //清空本地存储
   clearLocalStorage(); 
 
-  // 从 KV 中查询，cmd 为 "qryall"，查询全部
+  // 从KV中查询, cmd为 "qryall", 查询全部
   fetch(apiSrv, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -287,25 +283,25 @@ function loadKV() {
     return response.json();
   }).then(function (myJson) {
     res = myJson;
-    // 查询成功
+    // 成功查询 Succeed
     if (res.status == "200") {
 
-      // 遍历 kvlist
+      // 遍历kvlist
       res.kvlist.forEach(item => {      
         keyPhrase = item.key;
         valueLongURL = item.value;
-        // 保存到本地存储
+        // save to localStorage
         localStorage.setItem(keyPhrase, valueLongURL);  
       });
 
     } else {
       document.getElementById("result").innerHTML = res.error;
-      // 弹出结果提示框
+      // 弹出消息窗口 Popup the result
       var modal = new bootstrap.Modal(document.getElementById('resultModal'));
       modal.show();
     }
   }).catch(function (err) {
-    alert("未知错误，请重试！");
+    alert("Unknow error. Please retry!");
     console.log(err);
   })
 }
